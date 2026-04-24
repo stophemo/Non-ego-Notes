@@ -1,7 +1,7 @@
 <template>
   <header class="top-menu">
     <div class="menu-left">
-      <Dropdown v-for="menu in menus" :key="menu.label">
+      <Dropdown v-for="(menu, index) in menus" :key="menu.label" :ref="el => setDropdownRef(el, index)" @open-change="handleOpenChange(index, $event)">
         <template #trigger>
           <div class="menu-item">{{ menu.label }}</div>
         </template>
@@ -11,6 +11,9 @@
     <div class="menu-right">
       <button class="window-control-btn" @click="$emit('toggle-left-sidebar')" title="收起左侧菜单">
         <IconLeftSidebar />
+      </button>
+      <button class="window-control-btn" @click="$emit('toggle-thumbnail-sidebar')" title="收起缩略图栏">
+        <IconThumbnailSidebar />
       </button>
       <button class="window-control-btn" @click="$emit('toggle-right-sidebar')" title="收起AI聊天">
         <IconRightSidebar />
@@ -29,8 +32,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, type ComponentPublicInstance } from 'vue'
 import IconLeftSidebar from '../../components/icons/IconLeftSidebar.vue'
+import IconThumbnailSidebar from '../../components/icons/IconThumbnailSidebar.vue'
 import IconRightSidebar from '../../components/icons/IconRightSidebar.vue'
 import IconMinimize from '../../components/icons/IconMinimize.vue'
 import IconMaximize from '../../components/icons/IconMaximize.vue'
@@ -59,9 +63,38 @@ class TopMenu {
 }
 
 const menus = ref(TopMenu.menus)
+const dropdownRefs = ref<Map<number, ComponentPublicInstance>>(new Map())
+const activeMenuIndex = ref<number | null>(null)
+
+// 设置 Dropdown 组件引用
+const setDropdownRef = (el: any, index: number) => {
+  if (el && el.close) {
+    dropdownRefs.value.set(index, el)
+  }
+}
+
+// 处理 Dropdown 打开/关闭事件，确保同时只有一个下拉菜单打开
+const handleOpenChange = (index: number, isOpen: boolean) => {
+  if (isOpen) {
+    // 如果有其他菜单打开，关闭它们
+    if (activeMenuIndex.value !== null && activeMenuIndex.value !== index) {
+      const prevDropdown = dropdownRefs.value.get(activeMenuIndex.value)
+      if (prevDropdown) {
+        ;(prevDropdown as any).close()
+      }
+    }
+    activeMenuIndex.value = index
+  } else {
+    // 如果当前活动菜单关闭了，清空活动索引
+    if (activeMenuIndex.value === index) {
+      activeMenuIndex.value = null
+    }
+  }
+}
 
 defineEmits<{
   'toggle-left-sidebar': []
+  'toggle-thumbnail-sidebar': []
   'toggle-right-sidebar': []
 }>()
 

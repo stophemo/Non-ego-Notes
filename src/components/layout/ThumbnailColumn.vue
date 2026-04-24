@@ -1,5 +1,5 @@
 <template>
-  <section class="thumbnail-column">
+  <section class="thumbnail-column" :class="{ 'collapsed': !isOpen }">
     <div class="note-item" :class="{ 'active': selectedNote === 0 }" @click="selectNote(0)">
       <h4>智能锁营销策划</h4>
       <p>方案 中心小学解决方案可以连接多个机房，特点可以分别到个设备。一个方案多个成本中心</p>
@@ -21,6 +21,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+interface Props {
+  isOpen: boolean
+}
+
+defineProps<Props>()
+
 const selectedNote = ref(0)
 
 const selectNote = (index: number) => {
@@ -35,6 +41,14 @@ const selectNote = (index: number) => {
   border-right: 1px solid #e0e0e0;
   padding: 12px;
   overflow-y: auto;
+  transition: width 0.3s, padding 0.3s, opacity 0.3s;
+}
+
+.thumbnail-column.collapsed {
+  width: 0;
+  padding: 0;
+  opacity: 0;
+  overflow: hidden;
 }
 
 .note-item {

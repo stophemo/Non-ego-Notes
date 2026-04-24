@@ -3,6 +3,7 @@
     <!-- 顶部菜单栏 -->
     <TopMenu 
       @toggle-left-sidebar="toggleLeftSidebar"
+      @toggle-thumbnail-sidebar="toggleThumbnailSidebar"
       @toggle-right-sidebar="toggleRightSidebar"
     />
     
@@ -12,7 +13,7 @@
       <LeftSidebar :is-open="leftSidebarOpen" />
       
       <!-- 中间缩略图列 -->
-      <ThumbnailColumn />
+      <ThumbnailColumn :is-open="thumbnailSidebarOpen" />
       
       <!-- 中央编辑区域 -->
       <EditArea />
@@ -33,11 +34,17 @@ import RightSidebar from './components/layout/RightSidebar.vue'
 
 // 侧边栏状态
 const leftSidebarOpen = ref(true)
+const thumbnailSidebarOpen = ref(true)
 const rightSidebarOpen = ref(true)
 
 // 切换左侧侧边栏
 const toggleLeftSidebar = () => {
   leftSidebarOpen.value = !leftSidebarOpen.value
+}
+
+// 切换缩略图栏
+const toggleThumbnailSidebar = () => {
+  thumbnailSidebarOpen.value = !thumbnailSidebarOpen.value
 }
 
 // 切换右侧侧边栏
