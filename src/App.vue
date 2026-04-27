@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import TopMenu from './components/layout/TopMenu.vue'
 import LeftSidebar from './components/layout/LeftSidebar.vue'
 import ThumbnailColumn from './components/layout/ThumbnailColumn.vue'
@@ -51,6 +51,37 @@ const toggleThumbnailSidebar = () => {
 const toggleRightSidebar = () => {
   rightSidebarOpen.value = !rightSidebarOpen.value
 }
+
+// 键盘快捷键处理函数
+const handleKeyDown = (event: KeyboardEvent) => {
+  // 检查是否按下 Ctrl 键
+  if (event.ctrlKey) {
+    switch (event.key) {
+      case '1':
+        event.preventDefault(); // 阻止默认行为（如切换标签页）
+        toggleLeftSidebar();
+        break;
+      case '2':
+        event.preventDefault();
+        toggleThumbnailSidebar();
+        break;
+      case '3':
+        event.preventDefault();
+        toggleRightSidebar();
+        break;
+    }
+  }
+}
+
+// 组件挂载时添加键盘事件监听
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown);
+});
+
+// 组件卸载前移除键盘事件监听，防止内存泄漏
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeyDown);
+});
 </script>
 
 <style scoped>
