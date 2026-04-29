@@ -11,27 +11,23 @@ Woo（无我笔记）是一款专注写作的 Markdown 桌面笔记软件。
 
 ## 技术栈
 
-- **前端**: Vue 3 + TypeScript
+- **前端**: Vue 3 + TypeScript + Pinia
 - **桌面端**: Electron + Vite
-- **状态管理**: Pinia
+- **后端**: Spring Boot 3 + Spring Cloud Gateway
+- **持久化**: MyBatis Plus + MySQL
+- **认证**: JWT
 
 ## 开发指南
 
-### 安装依赖
+### 前端（app）
 
 ```bash
+cd app
 npm install
-```
 
-### 启动开发服务器
-
-```bash
+# 启动开发服务器
 npm run dev
-```
 
-### 构建应用
-
-```bash
 # 构建生产版本
 npm run build
 
@@ -39,22 +35,31 @@ npm run build
 npm run electron:build
 ```
 
+### 后端（services）
+
+```bash
+cd services
+mvn clean install
+```
+
+各微服务（auth-service、note-service、gateway）可独立启动，数据库初始化脚本见 `services/sql/init.sql`。
+
 ## 项目结构
 
 ```
 Non-ego-Notes/
-├── electron/               # Electron 主进程和预加载脚本
-├── src/                    # Vue 3 前端源码
-│   ├── components/         # Vue 组件
-│   ├── config/             # 配置文件（如菜单配置）
-│   ├── types/              # TypeScript 类型定义
-│   ├── App.vue             # 主应用组件
-│   ├── main.ts             # 应用入口
-│   └── style.css           # 全局样式
-├── docs/                   # 项目文档
-├── dist/                   # 构建输出目录
-├── dist-electron/          # Electron 构建输出目录
-└── package.json            # 项目配置和依赖管理
+├── app/                    # 前端应用（Vue 3 + Electron）
+│   ├── electron/           # Electron 主进程和预加载脚本
+│   ├── src/                # Vue 3 源码（components / stores / types 等）
+│   ├── docs/               # 前端设计文档
+│   └── package.json
+└── services/               # 后端微服务（Spring Boot）
+    ├── common/             # 通用模块（实体、异常、工具类等）
+    ├── auth-service/       # 认证服务
+    ├── note-service/       # 笔记服务
+    ├── gateway/            # API 网关
+    ├── sql/                # 数据库初始化脚本
+    └── pom.xml
 ```
 
 ## 贡献
