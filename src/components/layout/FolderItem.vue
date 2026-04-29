@@ -2,6 +2,7 @@
     <div class="folder-item">
         <div 
             class="sidebar-item"
+            :class="{ 'selected': selectedFolderId === folder.id }"
             :style="{ paddingLeft: `${depth * 16 + 8}px` }"
             @contextmenu.stop="handleContextMenu"
             @click="handleClick"
@@ -28,8 +29,10 @@
                 :key="child.id"
                 :folder="child"
                 :depth="depth + 1"
+                :selected-folder-id="selectedFolderId"
                 @context-menu="forwardContextMenu"
-                @folder-action="forwardFolderAction"
+                @folder-select="forwardFolderSelect"
+                @rename="forwardRename"
             />
         </div>
     </div>
@@ -39,17 +42,17 @@
 import { ref, nextTick } from 'vue'
 import IconFolderOpen from '../icons/IconFolderOpen.vue'
 import IconFolderClosed from '../icons/IconFolderClosed.vue'
-import IconFile from '../icons/IconFile.vue'
 import type { FolderNode, ContextMenuPosition } from '../../types/folder'
 
 interface Props {
     folder: FolderNode
     depth: number
+    selectedFolderId: string | null
 }
 
 interface Emits {
     (e: 'context-menu', data: { folder: FolderNode, position: ContextMenuPosition }): void
-    (e: 'folder-action', data: { action: string, folder: FolderNode }): void
+    (e: 'folder-select', folder: FolderNode): void
     (e: 'rename', data: { folder: FolderNode, newName: string }): void
 }
 
@@ -71,17 +74,12 @@ const handleContextMenu = (event: MouseEvent) => {
 }
 
 const handleClick = () => {
-    // 点击展开/折叠
-    if (props.folder.children.length > 0 && !isEditing.value) {
-        emit('folder-action', {
-            action: 'toggle',
-            folder: props.folder
-        })
+    if (!isEditing.value) {
+        emit('folder-select', props.folder)
     }
 }
 
 const handleDoubleClick = () => {
-    // 双击开始编辑
     startEdit()
 }
 
@@ -114,8 +112,12 @@ const forwardContextMenu = (data: { folder: FolderNode, position: ContextMenuPos
     emit('context-menu', data)
 }
 
-const forwardFolderAction = (data: { action: string, folder: FolderNode }) => {
-    emit('folder-action', data)
+const forwardFolderSelect = (folder: FolderNode) => {
+    emit('folder-select', folder)
+}
+
+const forwardRename = (data: { folder: FolderNode, newName: string }) => {
+    emit('rename', data)
 }
 </script>
 
@@ -130,7 +132,7 @@ const forwardFolderAction = (data: { action: string, folder: FolderNode }) => {
     cursor: pointer;
     border-radius: 6px;
     font-size: 13px;
-    color: #333;
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -140,18 +142,31 @@ const forwardFolderAction = (data: { action: string, folder: FolderNode }) => {
 }
 
 .sidebar-item:hover {
-    background-color: #e8e8e8;
+    background-color: var(--bg-hover);
 }
 
 .sidebar-item:active {
-    background-color: #d8d8d8;
+    background-color: var(--bg-active);
+}
+
+.sidebar-item.selected {
+    background-color: var(--bg-selected);
+    color: var(--text-on-selected);
+}
+
+.sidebar-item.selected:hover {
+    background-color: var(--bg-selected-hover);
 }
 
 .sidebar-item :deep(svg) {
     width: 16px;
     height: 16px;
-    color: #666;
+    color: var(--text-secondary);
     flex-shrink: 0;
+}
+
+.sidebar-item.selected :deep(svg) {
+    color: var(--text-on-selected);
 }
 
 .folder-name {
@@ -164,13 +179,13 @@ const forwardFolderAction = (data: { action: string, folder: FolderNode }) => {
 
 .folder-name-input {
     flex: 1;
-    border: 1px solid #409eff;
+    border: 1px solid var(--accent);
     border-radius: 3px;
     padding: 2px 6px;
     font-size: 13px;
-    color: #333;
+    color: var(--text-primary);
     outline: none;
-    background-color: #fff;
+    background-color: var(--bg-elevated);
 }
 
 .folder-children {

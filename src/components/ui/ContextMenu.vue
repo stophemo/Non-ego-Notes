@@ -64,7 +64,7 @@ const handleSelect = (item: ContextMenuItem) => {
 }
 
 // 点击其他地方关闭菜单
-const handleClickOutside = (event: MouseEvent) => {
+const handleClickOutside = () => {
     emit('close')
 }
 
@@ -82,10 +82,10 @@ onBeforeUnmount(() => {
 <style scoped>
 .context-menu {
     position: fixed;
-    background-color: #fff;
-    border: 1px solid #e0e0e0;
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-primary);
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-dropdown);
     padding: 4px 0;
     z-index: 9999;
     min-width: 160px;
@@ -95,16 +95,16 @@ onBeforeUnmount(() => {
     padding: 8px 16px;
     cursor: pointer;
     font-size: 13px;
-    color: #333;
+    color: var(--text-primary);
     transition: background-color 0.2s;
 }
 
 .context-menu-item:hover:not(.disabled) {
-    background-color: #f0f0f0;
+    background-color: var(--bg-hover);
 }
 
 .context-menu-item.disabled {
-    color: #999;
+    color: var(--text-disabled);
     cursor: not-allowed;
 }
 </style>

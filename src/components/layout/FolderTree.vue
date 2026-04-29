@@ -5,8 +5,9 @@
             :key="folder.id"
             :folder="folder"
             :depth="0"
+            :selected-folder-id="selectedFolderId"
             @context-menu="forwardContextMenu"
-            @folder-action="forwardFolderAction"
+            @folder-select="forwardFolderSelect"
             @rename="forwardRename"
         />
     </div>
@@ -18,23 +19,24 @@ import type { FolderNode, ContextMenuPosition } from '../../types/folder'
 
 interface Props {
     folders: FolderNode[]
+    selectedFolderId: string | null
 }
 
 interface Emits {
     (e: 'context-menu', data: { folder: FolderNode, position: ContextMenuPosition }): void
-    (e: 'folder-action', data: { action: string, folder: FolderNode }): void
+    (e: 'folder-select', folder: FolderNode): void
     (e: 'rename', data: { folder: FolderNode, newName: string }): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const forwardContextMenu = (data: { folder: FolderNode, position: ContextMenuPosition }) => {
     emit('context-menu', data)
 }
 
-const forwardFolderAction = (data: { action: string, folder: FolderNode }) => {
-    emit('folder-action', data)
+const forwardFolderSelect = (folder: FolderNode) => {
+    emit('folder-select', folder)
 }
 
 const forwardRename = (data: { folder: FolderNode, newName: string }) => {

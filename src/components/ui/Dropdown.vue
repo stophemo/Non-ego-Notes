@@ -66,9 +66,9 @@ defineExpose({ close, toggle })
   top: 100%;
   left: 0;
   margin-top: 4px;
-  background-color: white;
+  background-color: var(--bg-elevated);
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-dropdown);
   padding: 6px 0;
   min-width: 180px;
   z-index: 1000;

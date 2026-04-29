@@ -15,11 +15,11 @@ defineEmits<{
   padding: 8px 16px;
   cursor: pointer;
   font-size: 13px;
-  color: #333;
+  color: var(--text-primary);
   transition: background-color 0.2s;
 }
 
 .dropdown-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--bg-hover);
 }
 </style>

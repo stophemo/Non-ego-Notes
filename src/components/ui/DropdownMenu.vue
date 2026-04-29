@@ -50,7 +50,7 @@ interface Props {
   isSubmenu?: boolean  // 是否为子菜单（影响定位样式）
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   isSubmenu: false
 })
 
@@ -63,9 +63,9 @@ defineEmits<{
 
 <style scoped>
 .dropdown-menu-container {
-  background-color: white;
+  background-color: var(--bg-elevated);
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-dropdown);
   padding: 6px 0;
   min-width: 180px;
 }
@@ -89,17 +89,17 @@ defineEmits<{
   padding: 8px 16px;
   cursor: pointer;
   font-size: 13px;
-  color: #333;
+  color: var(--text-primary);
   transition: background-color 0.2s;
 }
 
 .submenu-trigger:hover {
-  background-color: #f0f0f0;
+  background-color: var(--bg-hover);
 }
 
 .submenu-arrow {
   font-size: 16px;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .submenu-enter-active,
