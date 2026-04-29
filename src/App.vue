@@ -5,6 +5,7 @@
       @toggle-left-sidebar="toggleLeftSidebar"
       @toggle-thumbnail-sidebar="toggleThumbnailSidebar"
       @toggle-right-sidebar="toggleRightSidebar"
+      @open-settings="showSettings = true"
     />
     
     <!-- 主内容区域 -->
@@ -19,8 +20,11 @@
       <EditArea />
       
       <!-- 右侧AI对话区域 -->
-      <RightSidebar :is-open="rightSidebarOpen" />
+      <RightSidebar :is-open="rightSidebarOpen" @open-settings="showSettings = true" />
     </div>
+
+    <!-- 设置弹窗 -->
+    <SettingsDialog :visible="showSettings" @close="showSettings = false" />
   </div>
 </template>
 
@@ -31,11 +35,17 @@ import LeftSidebar from './components/layout/LeftSidebar.vue'
 import ThumbnailColumn from './components/layout/ThumbnailColumn.vue'
 import EditArea from './components/layout/EditArea.vue'
 import RightSidebar from './components/layout/RightSidebar.vue'
+import SettingsDialog from './components/layout/SettingsDialog.vue'
+import { useThemeStore } from './stores/theme'
+
+// 初始化主题（确保 data-theme 属性在应用启动时就被设置到 <html>）
+useThemeStore()
 
 // 侧边栏状态
 const leftSidebarOpen = ref(true)
 const thumbnailSidebarOpen = ref(true)
 const rightSidebarOpen = ref(true)
+const showSettings = ref(false)
 
 // 切换左侧侧边栏
 const toggleLeftSidebar = () => {

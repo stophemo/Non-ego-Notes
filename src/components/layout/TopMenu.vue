@@ -18,6 +18,11 @@
       <button class="window-control-btn" @click="$emit('toggle-right-sidebar')" title="收起AI聊天">
         <IconRightSidebar />
       </button>
+      <div class="menu-divider"></div>
+      <button class="window-control-btn" @click="themeStore.toggleTheme()" :title="themeStore.theme === 'light' ? '切换到夜间模式' : '切换到日间模式'">
+        <IconThemeToggle :mode="themeStore.theme" />
+      </button>
+      <div class="menu-divider"></div>
       <button class="window-control-btn minimize-btn" @click="minimizeWindow" title="最小化">
         <IconMinimize />
       </button>
@@ -39,8 +44,10 @@ import IconRightSidebar from '../../components/icons/IconRightSidebar.vue'
 import IconMinimize from '../../components/icons/IconMinimize.vue'
 import IconMaximize from '../../components/icons/IconMaximize.vue'
 import IconClose from '../../components/icons/IconClose.vue'
+import IconThemeToggle from '../../components/icons/IconThemeToggle.vue'
 import Dropdown from '../ui/Dropdown.vue'
 import DropdownMenu from '../ui/DropdownMenu.vue'
+import { useThemeStore } from '../../stores/theme'
 import {
   fileMenuItems,
   editMenuItems,
@@ -49,6 +56,8 @@ import {
   viewMenuItems,
   helpMenuItems
 } from '../../config/menus'
+
+const themeStore = useThemeStore()
 
 // 菜单配置数据
 class TopMenu {
@@ -92,10 +101,11 @@ const handleOpenChange = (index: number, isOpen: boolean) => {
   }
 }
 
-defineEmits<{
+const emit = defineEmits<{
   'toggle-left-sidebar': []
   'toggle-thumbnail-sidebar': []
   'toggle-right-sidebar': []
+  'open-settings': []
 }>()
 
 // 窗口控制
@@ -120,16 +130,20 @@ const closeWindow = () => {
 // 菜单操作处理
 const handleMenuAction = (action: string) => {
   console.log('Menu action:', action)
-  // 处理 GitHub 链接
   if (action === 'github') {
     if (window.electronAPI) {
       window.electronAPI.openExternalLink('https://github.com/stophemo/Non-ego-Notes')
     }
     return
   }
-  // 这里可以根据不同的 action 执行不同的操作
-  // 例如：
-  // if (action === 'new-document') { ... }
+  if (action === 'settings') {
+    emit('open-settings')
+    return
+  }
+  if (action === 'open-chat') {
+    emit('toggle-right-sidebar')
+    return
+  }
 }
 </script>
 
@@ -140,9 +154,10 @@ const handleMenuAction = (action: string) => {
   align-items: center;
   padding: 0 16px;
   height: 40px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
+  background-color: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border-primary);
   -webkit-app-region: drag;
+  transition: var(--theme-transition);
 }
 
 .menu-left {
@@ -156,11 +171,11 @@ const handleMenuAction = (action: string) => {
   cursor: pointer;
   border-radius: 4px;
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .menu-item:hover {
-  background-color: #e5e5e5;
+  background-color: var(--bg-hover);
 }
 
 .menu-right {
@@ -178,22 +193,30 @@ const handleMenuAction = (action: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: var(--text-secondary);
   transition: all 0.2s;
 }
 
 .window-control-btn:hover {
-  background-color: #e5e5e5;
-  color: #333;
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .window-control-btn.close-btn:hover {
-  background-color: #e81123;
-  color: white;
+  background-color: var(--close-hover-bg);
+  color: var(--close-hover-color);
 }
 
 .window-control-btn svg {
   width: 18px;
   height: 18px;
+}
+
+.menu-divider {
+  width: 1px;
+  height: 16px;
+  background-color: var(--border-primary);
+  margin: 0 2px;
+  align-self: center;
 }
 </style>
