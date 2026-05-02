@@ -185,7 +185,6 @@ const handleMenuAction = (action: string) => {
   border-bottom: 1px solid var(--border-primary);
   -webkit-app-region: drag;
   transition: var(--theme-transition), height 0.25s ease, transform 0.25s ease, padding 0.25s ease, border-bottom-color 0.25s ease, opacity 0.2s ease;
-  overflow: hidden;
   transform-origin: top;
 }
 
@@ -197,6 +196,7 @@ const handleMenuAction = (action: string) => {
   transform: translateY(-100%);
   opacity: 0;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .menu-left {
