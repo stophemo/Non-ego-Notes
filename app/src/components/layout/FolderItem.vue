@@ -39,9 +39,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, watch } from 'vue'
 import IconFolderOpen from '../icons/IconFolderOpen.vue'
 import IconFolderClosed from '../icons/IconFolderClosed.vue'
+import { useWorkspaceStore } from '../../stores/workspace'
 import type { FolderNode, ContextMenuPosition } from '../../types/folder'
 
 interface Props {
@@ -58,6 +59,8 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+const workspaceStore = useWorkspaceStore()
 
 const isEditing = ref(false)
 const editName = ref('')
@@ -107,6 +110,18 @@ const finishEdit = () => {
 const cancelEdit = () => {
     isEditing.value = false
 }
+
+// 新建目录时由 store 设置 editingFolderId，命中自己则自动进入重命名状态
+watch(
+    () => workspaceStore.editingFolderId,
+    (id) => {
+        if (id && id === props.folder.id) {
+            startEdit()
+            workspaceStore.clearEditingFolder()
+        }
+    },
+    { immediate: true }
+)
 
 const forwardContextMenu = (data: { folder: FolderNode, position: ContextMenuPosition }) => {
     emit('context-menu', data)

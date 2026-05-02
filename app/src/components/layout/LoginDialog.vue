@@ -3,12 +3,47 @@
     <div v-if="visible" class="login-overlay" @click.self="$emit('close')" @keydown.esc="$emit('close')">
       <div class="login-dialog">
         <div class="login-header">
-          <h2>登录账户</h2>
+          <h2>{{ isLoggedIn ? '账户信息' : '登录账户' }}</h2>
           <button class="login-close-btn" @click="$emit('close')">
             <IconClose />
           </button>
         </div>
-        <div class="login-body">
+
+        <!-- 已登录：展示账户信息 -->
+        <div v-if="isLoggedIn" class="login-body">
+          <div class="account-profile">
+            <div class="account-avatar">
+              <img v-if="user?.avatar" :src="user.avatar" alt="avatar" />
+              <span v-else class="account-avatar-fallback">{{ avatarText }}</span>
+            </div>
+            <div class="account-meta">
+              <div class="account-nickname">{{ user?.nickname || user?.username || '未命名用户' }}</div>
+              <div class="account-username">@{{ user?.username }}</div>
+            </div>
+          </div>
+
+          <div class="account-info-list">
+            <div class="account-info-row">
+              <span class="account-info-label">用户 ID</span>
+              <span class="account-info-value">{{ user?.userId || '-' }}</span>
+            </div>
+            <div class="account-info-row">
+              <span class="account-info-label">邮箱</span>
+              <span class="account-info-value">{{ user?.email || '未绑定' }}</span>
+            </div>
+          </div>
+
+          <div v-if="errorMsg" class="login-error">{{ errorMsg }}</div>
+          <div class="login-actions">
+            <button class="login-btn danger" @click="handleLogout" :disabled="submitting">
+              {{ submitting ? '退出中...' : '退出登录' }}
+            </button>
+            <button class="login-btn" @click="$emit('close')">关闭</button>
+          </div>
+        </div>
+
+        <!-- 未登录：展示登录表单 -->
+        <div v-else class="login-body">
           <div class="login-field">
             <label>账号</label>
             <input
@@ -46,7 +81,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import IconClose from '../icons/IconClose.vue'
 import { useAuthStore } from '../../stores/auth'
 
@@ -55,14 +91,20 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits<{ close: [], 'login-success': [] }>()
+const emit = defineEmits<{ close: [], 'login-success': [], logout: [] }>()
 
 const authStore = useAuthStore()
+const { user, isLoggedIn } = storeToRefs(authStore)
 
 const username = ref('')
 const password = ref('')
 const submitting = ref(false)
 const errorMsg = ref('')
+
+const avatarText = computed(() => {
+  const name = user.value?.nickname || user.value?.username || ''
+  return name ? name.charAt(0).toUpperCase() : '?'
+})
 
 watch(() => props.visible, (val) => {
   if (val) {
@@ -90,6 +132,17 @@ async function handleLogin() {
     }
   } catch (e: any) {
     errorMsg.value = e?.message || '登录失败，请重试'
+  } finally {
+    submitting.value = false
+  }
+}
+
+function handleLogout() {
+  submitting.value = true
+  try {
+    authStore.logout()
+    emit('logout')
+    emit('close')
   } finally {
     submitting.value = false
   }
@@ -220,9 +273,97 @@ async function handleLogin() {
   background-color: var(--accent-hover);
 }
 
+.login-btn.danger {
+  background-color: transparent;
+  color: #e53935;
+  border-color: #e53935;
+}
+
+.login-btn.danger:hover:not(:disabled) {
+  background-color: rgba(229, 57, 53, 0.08);
+}
+
 .login-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.account-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0 12px;
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.account-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.account-avatar-fallback {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.account-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.account-nickname {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-username {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.account-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.account-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.account-info-label {
+  color: var(--text-secondary);
+}
+
+.account-info-value {
+  color: var(--text-primary);
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .login-footer {

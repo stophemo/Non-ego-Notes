@@ -1,7 +1,7 @@
 <template>
-    <aside class="left-sidebar" :class="{ 'collapsed': !isOpen }">
-        <div class="sidebar-section">
-            <div class="sidebar-item">
+    <aside class="left-sidebar" :class="{ 'collapsed': !isOpen }" @contextmenu="handleContextMenu">
+        <div class="sidebar-section" @contextmenu.stop.prevent>
+            <div class="sidebar-item" @click="handleNewDocument">
                 <IconNewDocument />
                 <span>新建文档</span>
             </div>
@@ -9,7 +9,7 @@
                 <IconSearch />
                 <span>搜索</span>
             </div>
-            <div class="sidebar-item">
+            <div class="sidebar-item" @click="handleOpenDraftBox">
                 <IconDraft />
                 <span>草稿箱</span>
             </div>
@@ -19,7 +19,7 @@
             </div>
         </div>
         <div class="divider"></div>
-        <div class="sidebar-section" @contextmenu="handleContextMenu">
+        <div class="sidebar-section">
             <FolderTree 
                 :folders="store.folders" 
                 :selected-folder-id="store.selectedFolderId"
@@ -82,7 +82,7 @@ const handleContextMenu = (event: MouseEvent) => {
     
     contextMenuPosition.value = { x: event.clientX, y: event.clientY }
     contextMenuItems.value = [
-        { label: '新建目录', action: 'createRoot' }
+        { label: '新建文件夹', action: 'createRoot' }
     ]
     showContextMenu.value = true
 }
@@ -96,6 +96,7 @@ const handleFolderContextMenu = (data: { folder: FolderNode, position: ContextMe
     contextMenuItems.value = [
         { label: '创建同级目录', action: 'createSibling' },
         { label: '创建子目录', action: 'createChild' },
+        { label: '重命名', action: 'rename' },
         { label: '删除当前目录', action: 'delete', disabled: false }
     ]
     showContextMenu.value = true
@@ -113,6 +114,9 @@ const handleMenuSelect = (action: string) => {
         case 'createChild':
             if (selectedFolder.value) store.createChildFolder(selectedFolder.value)
             break
+        case 'rename':
+            if (selectedFolder.value) store.editingFolderId = selectedFolder.value.id
+            break
         case 'delete':
             if (selectedFolder.value) store.deleteFolder(selectedFolder.value)
             break
@@ -129,6 +133,16 @@ const closeContextMenu = () => {
 // 处理重命名
 const handleRename = (data: { folder: FolderNode, newName: string }) => {
     store.renameFolder(data.folder, data.newName)
+}
+
+// 新建文档：有选中真实目录则在该目录下创建，否则归入草稿箱
+const handleNewDocument = () => {
+    store.createNewDocument()
+}
+
+// 打开草稿箱视图
+const handleOpenDraftBox = () => {
+    store.openDraftBox()
 }
 </script>
 

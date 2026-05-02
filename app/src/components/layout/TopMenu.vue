@@ -13,17 +13,20 @@
         class="window-control-btn"
         :class="{ 'is-active': !isOpen }"
         @click="$emit('toggle-top-menu')"
-        title="显示/隐藏菜单栏 (Ctrl+`)"
+        title="显示/隐藏菜单栏 (Ctrl+↑)"
       >
         <IconTopMenu />
       </button>
-      <button class="window-control-btn" @click="$emit('toggle-left-sidebar')" title="显示/隐藏左侧菜单 (Ctrl+1)">
+      <button class="window-control-btn" @click="$emit('toggle-status-bar')" title="显示/隐藏底部状态栏 (Ctrl+↓)">
+        <IconStatusBar />
+      </button>
+      <button class="window-control-btn" @click="$emit('toggle-left-sidebar')" title="显示/隐藏左侧菜单 (Ctrl+←)">
         <IconLeftSidebar />
       </button>
-      <button class="window-control-btn" @click="$emit('toggle-thumbnail-sidebar')" title="显示/隐藏缩略图栏 (Ctrl+2)">
+      <button class="window-control-btn" @click="$emit('toggle-thumbnail-sidebar')" title="显示/隐藏缩略图栏 (Ctrl+←)">
         <IconThumbnailSidebar />
       </button>
-      <button class="window-control-btn" @click="$emit('toggle-right-sidebar')" title="显示/隐藏AI聊天 (Ctrl+3)">
+      <button class="window-control-btn" @click="$emit('toggle-right-sidebar')" title="显示/隐藏 AI 聊天 (Ctrl+→)">
         <IconRightSidebar />
       </button>
       <div class="menu-divider"></div>
@@ -58,6 +61,7 @@ import IconClose from '../../components/icons/IconClose.vue'
 import IconThemeToggle from '../../components/icons/IconThemeToggle.vue'
 import IconAccount from '../../components/icons/IconAccount.vue'
 import IconTopMenu from '../../components/icons/IconTopMenu.vue'
+import IconStatusBar from '../../components/icons/IconStatusBar.vue'
 import Dropdown from '../ui/Dropdown.vue'
 import DropdownMenu from '../ui/DropdownMenu.vue'
 import { useThemeStore } from '../../stores/theme'
@@ -128,6 +132,7 @@ const emit = defineEmits<{
   'open-settings': []
   'open-login': []
   'toggle-top-menu': []
+  'toggle-status-bar': []
 }>()
 
 // 窗口控制

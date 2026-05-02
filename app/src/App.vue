@@ -9,6 +9,7 @@
       @open-settings="showSettings = true"
       @open-login="showLogin = true"
       @toggle-top-menu="toggleTopMenu"
+      @toggle-status-bar="toggleStatusBar"
     />
     
     <!-- 主内容区域 -->
@@ -20,7 +21,7 @@
       <ThumbnailColumn :is-open="thumbnailSidebarOpen" />
       
       <!-- 中央编辑区域 -->
-      <EditArea />
+      <EditArea :is-status-bar-open="statusBarOpen" />
       
       <!-- 右侧AI对话区域 -->
       <RightSidebar :is-open="rightSidebarOpen" @open-settings="showSettings = true" />
@@ -29,8 +30,13 @@
     <!-- 设置弹窗 -->
     <SettingsDialog :visible="showSettings" @close="showSettings = false" />
 
-    <!-- 登录弹窗 -->
-    <LoginDialog :visible="showLogin" @close="handleLoginClose" @login-success="handleLoginSuccess" />
+    <!-- 登录弹窗 / 账户信息弹窗 -->
+    <LoginDialog
+      :visible="showLogin"
+      @close="handleLoginClose"
+      @login-success="handleLoginSuccess"
+      @logout="handleLogout"
+    />
   </div>
 </template>
 
@@ -60,6 +66,7 @@ const rightSidebarOpen = ref(true)
 const showSettings = ref(false)
 const showLogin = ref(false)
 const topMenuOpen = ref(true)
+const statusBarOpen = ref(true)
 
 // 登录成功后拉取数据
 async function handleLoginSuccess() {
@@ -69,6 +76,11 @@ async function handleLoginSuccess() {
 
 function handleLoginClose() {
   showLogin.value = false
+}
+
+// 用户主动退出登录：清理工作空间状态
+function handleLogout() {
+  workspaceStore.reset()
 }
 
 // 监听 Token 失效，自动弹出登录
@@ -114,30 +126,45 @@ const toggleRightSidebar = () => {
   rightSidebarOpen.value = !rightSidebarOpen.value
 }
 
+// 切换底部状态栏
+const toggleStatusBar = () => {
+  statusBarOpen.value = !statusBarOpen.value
+}
+
+// 左侧菜单栏 + 缩略图栏 四步循环：
+// (左开,缩开) -> 收起缩略图 -> (左开,缩关) -> 收起左侧 -> (左关,缩关) -> 展开缩略图 -> (左关,缩开) -> 展开左侧 -> (左开,缩开)
+const cycleLeftPanels = () => {
+  if (leftSidebarOpen.value && thumbnailSidebarOpen.value) {
+    thumbnailSidebarOpen.value = false
+  } else if (leftSidebarOpen.value && !thumbnailSidebarOpen.value) {
+    leftSidebarOpen.value = false
+  } else if (!leftSidebarOpen.value && !thumbnailSidebarOpen.value) {
+    thumbnailSidebarOpen.value = true
+  } else {
+    leftSidebarOpen.value = true
+  }
+}
+
 // 键盘快捷键处理函数
 const handleKeyDown = (event: KeyboardEvent) => {
-  // 快捷键 Ctrl+` 切换顶部菜单栏
-  if (event.ctrlKey && event.key === '`') {
-    event.preventDefault()
-    toggleTopMenu()
-    return
-  }
-  // 检查是否按下 Ctrl 键
-  if (event.ctrlKey) {
-    switch (event.key) {
-      case '1':
-        event.preventDefault(); // 阻止默认行为（如切换标签页）
-        toggleLeftSidebar();
-        break;
-      case '2':
-        event.preventDefault();
-        toggleThumbnailSidebar();
-        break;
-      case '3':
-        event.preventDefault();
-        toggleRightSidebar();
-        break;
-    }
+  if (!event.ctrlKey) return
+  switch (event.key) {
+    case 'ArrowUp':
+      event.preventDefault()
+      toggleTopMenu()
+      break
+    case 'ArrowDown':
+      event.preventDefault()
+      toggleStatusBar()
+      break
+    case 'ArrowLeft':
+      event.preventDefault()
+      cycleLeftPanels()
+      break
+    case 'ArrowRight':
+      event.preventDefault()
+      toggleRightSidebar()
+      break
   }
 }
 
