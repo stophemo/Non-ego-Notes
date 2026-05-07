@@ -28,6 +28,25 @@ function listByFolder(folderId) {
   return rows.map(toDto)
 }
 
+function listTrash() {
+  const db = getDb()
+  const rows = db.prepare(`SELECT * FROM note_document
+                           WHERE deleted = 1
+                           ORDER BY update_time DESC`).all()
+  return rows.map(toDto)
+}
+
+function search(keyword) {
+  const db = getDb()
+  const q = String(keyword || '').trim()
+  if (!q) return []
+  const like = `%${q}%`
+  const rows = db.prepare(`SELECT * FROM note_document
+                           WHERE deleted = 0 AND (title LIKE ? OR content LIKE ?)
+                           ORDER BY update_time DESC`).all(like, like)
+  return rows.map(toDto)
+}
+
 function getById(documentId) {
   const row = verifyExists(documentId)
   return toDto(row)
@@ -69,9 +88,29 @@ function remove(documentId) {
   db.prepare('UPDATE note_document SET deleted = 1, update_time = ? WHERE id = ?').run(nowStr(), documentId)
 }
 
+function restore(documentId) {
+  verifyExistsAny(documentId)
+  const db = getDb()
+  db.prepare('UPDATE note_document SET deleted = 0, update_time = ? WHERE id = ?').run(nowStr(), documentId)
+}
+
+function hardDelete(documentId) {
+  verifyExistsAny(documentId)
+  const db = getDb()
+  db.prepare('DELETE FROM note_document_version WHERE document_id = ?').run(documentId)
+  db.prepare('DELETE FROM note_document WHERE id = ?').run(documentId)
+}
+
 function verifyExists(documentId) {
   const db = getDb()
   const row = db.prepare('SELECT * FROM note_document WHERE id = ? AND deleted = 0').get(documentId)
+  if (!row) throw new Error('文稿不存在')
+  return row
+}
+
+function verifyExistsAny(documentId) {
+  const db = getDb()
+  const row = db.prepare('SELECT * FROM note_document WHERE id = ?').get(documentId)
   if (!row) throw new Error('文稿不存在')
   return row
 }
@@ -105,10 +144,14 @@ function sanitize(seg) {
 
 module.exports = {
   listByFolder,
+  listTrash,
+  search,
   getById,
   create,
   rename,
   updateContent,
   remove,
+  restore,
+  hardDelete,
   verifyExists
 }

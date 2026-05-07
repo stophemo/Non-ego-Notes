@@ -24,6 +24,14 @@ export function listByFolder(folderId: string): Promise<DocumentDTO[]> {
   return invoke<DocumentDTO[]>('document:listByFolder', folderId)
 }
 
+export function listTrash(): Promise<DocumentDTO[]> {
+  return invoke<DocumentDTO[]>('document:listTrash')
+}
+
+export function search(keyword: string): Promise<DocumentDTO[]> {
+  return invoke<DocumentDTO[]>('document:search', keyword)
+}
+
 export function getById(documentId: string): Promise<DocumentDTO> {
   return invoke<DocumentDTO>('document:get', documentId)
 }
@@ -42,4 +50,12 @@ export function updateContent(documentId: string, content: string): Promise<void
 
 export function remove(documentId: string): Promise<void> {
   return invoke<void>('document:remove', documentId)
+}
+
+export function restore(documentId: string): Promise<void> {
+  return invoke<void>('document:restore', documentId)
+}
+
+export function hardDelete(documentId: string): Promise<void> {
+  return invoke<void>('document:hardDelete', documentId)
 }

@@ -5,7 +5,7 @@
                 <IconNewDocument />
                 <span>新建文档</span>
             </div>
-            <div class="sidebar-item">
+            <div class="sidebar-item" @click="handleOpenSearch">
                 <IconSearch />
                 <span>搜索</span>
             </div>
@@ -13,7 +13,7 @@
                 <IconDraft />
                 <span>草稿箱</span>
             </div>
-            <div class="sidebar-item">
+            <div class="sidebar-item" @click="handleOpenTrashBox">
                 <IconTrash />
                 <span>废纸篓</span>
             </div>
@@ -143,6 +143,16 @@ const handleNewDocument = () => {
 // 打开草稿箱视图
 const handleOpenDraftBox = () => {
     store.openDraftBox()
+}
+
+const handleOpenTrashBox = () => {
+    void store.openTrashBox()
+}
+
+const handleOpenSearch = async () => {
+    const keyword = window.prompt('请输入搜索关键词（匹配标题与内容）', '')
+    if (keyword === null) return
+    await store.openSearch(keyword)
 }
 </script>
 

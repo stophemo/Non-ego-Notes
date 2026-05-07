@@ -19,11 +19,15 @@
           >
             <IconDetail />
           </button>
+          <div v-if="isTrashView" class="trash-actions">
+            <button class="action-btn" title="恢复文稿" @click.stop="handleRestoreDocument(doc.id)">恢复</button>
+            <button class="action-btn danger" title="彻底删除文稿" @click.stop="handleHardDeleteDocument(doc.id)">删除</button>
+          </div>
         </div>
       </template>
 
       <div v-else-if="store.selectedFolderId" class="empty-state">
-        <p class="empty-hint">该目录下暂无文稿</p>
+        <p class="empty-hint">{{ emptyHint }}</p>
       </div>
 
       <div v-else class="empty-state">
@@ -120,6 +124,9 @@ interface Props {
 defineProps<Props>()
 
 const store = useWorkspaceStore()
+const TRASH_FOLDER_ID = '__trash__'
+const SEARCH_FOLDER_ID = '__search__'
+const DRAFT_FOLDER_ID = '__drafts__'
 
 // ============ 翻转与背面数据 ============
 const flipped = ref(false)
@@ -147,6 +154,16 @@ const outline = computed<{ level: number; text: string }[]>(() => {
     if (text) list.push({ level, text })
   })
   return list
+})
+
+const isTrashView = computed(() => store.selectedFolderId === TRASH_FOLDER_ID)
+const isSearchView = computed(() => store.selectedFolderId === SEARCH_FOLDER_ID)
+
+const emptyHint = computed(() => {
+  if (isTrashView.value) return '废纸篓为空'
+  if (isSearchView.value) return '未搜索到文稿'
+  if (store.selectedFolderId === DRAFT_FOLDER_ID) return '草稿箱为空'
+  return '该目录下暂无文稿'
 })
 
 function isDraftId(id: string): boolean {
@@ -188,6 +205,7 @@ async function refreshVersions(docId: string) {
 }
 
 async function handleFlip(docId: string) {
+  if (isTrashView.value) return
   activeDocId.value = docId
   if (store.selectedDocumentId !== docId) {
     await store.selectDocument(docId)
@@ -211,6 +229,15 @@ async function handleRestore(versionNo: number) {
   } catch (e: any) {
     window.alert(e?.message || '回滚失败')
   }
+}
+
+async function handleRestoreDocument(docId: string) {
+  await store.restoreDocument(docId)
+}
+
+async function handleHardDeleteDocument(docId: string) {
+  if (!window.confirm('确认彻底删除该文稿？该操作不可恢复。')) return
+  await store.hardDeleteDocument(docId)
 }
 
 // 当前文稿被删除则自动返回正面
@@ -247,7 +274,7 @@ watch(flipped, (v) => {
 })
 
 const handleSelectDocument = (docId: string) => {
-  store.selectDocument(docId)
+  void store.selectDocument(docId)
 }
 
 function firstLineOf(content: string | null | undefined): string {
@@ -401,6 +428,30 @@ function changeTypeLabel(t: string): string {
 .flip-btn:hover {
   background-color: var(--bg-hover, rgba(0, 0, 0, 0.06));
   color: var(--accent);
+}
+
+.trash-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  border: 1px solid var(--border-primary);
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 8px;
+}
+
+.action-btn:hover {
+  border-color: var(--accent);
+}
+
+.action-btn.danger {
+  color: #d9534f;
 }
 
 .empty-state {

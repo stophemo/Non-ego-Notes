@@ -39,6 +39,7 @@ import { Extension } from '@tiptap/vue-3'
 import { useWorkspaceStore } from '../../stores/workspace'
 
 const store = useWorkspaceStore()
+const TRASH_FOLDER_ID = '__trash__'
 
 interface Props {
   isStatusBarOpen?: boolean
@@ -167,6 +168,7 @@ const editor = useEditor({
   onUpdate: ({ editor: editorInstance }) => {
     // 编辑器内容变化时同步到 store
     if (isSettingContent || !store.selectedDocumentId) return
+    if (store.selectedFolderId === TRASH_FOLDER_ID) return
     store.updateDocumentContent(store.selectedDocumentId, editorInstance.getHTML())
 
     // === 版本触发检测 ===

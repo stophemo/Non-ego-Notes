@@ -34,6 +34,8 @@ function register() {
 
   // —— document ——
   ipcMain.handle('document:listByFolder', wrap((folderId) => documentService.listByFolder(folderId)))
+  ipcMain.handle('document:listTrash', wrap(() => documentService.listTrash()))
+  ipcMain.handle('document:search', wrap((keyword) => documentService.search(keyword)))
   ipcMain.handle('document:get', wrap((id) => documentService.getById(id)))
   ipcMain.handle('document:create', wrap((payload) => documentService.create(payload)))
   ipcMain.handle('document:rename', wrap((id, title) => {
@@ -44,6 +46,12 @@ function register() {
   }))
   ipcMain.handle('document:remove', wrap((id) => {
     documentService.remove(id); return null
+  }))
+  ipcMain.handle('document:restore', wrap((id) => {
+    documentService.restore(id); return null
+  }))
+  ipcMain.handle('document:hardDelete', wrap((id) => {
+    documentService.hardDelete(id); return null
   }))
 
   // —— version ——

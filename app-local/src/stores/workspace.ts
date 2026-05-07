@@ -40,6 +40,8 @@ function mapDocument(dto: DocumentDTO): Document {
 export const useWorkspaceStore = defineStore('workspace', () => {
   // 草稿箱特殊视图标识：选中此 id 时，folderDocuments 显示本地草稿列表
   const DRAFT_FOLDER_ID = '__drafts__'
+  const TRASH_FOLDER_ID = '__trash__'
+  const SEARCH_FOLDER_ID = '__search__'
   const DRAFT_STORAGE_KEY = 'woo:drafts'
 
   function loadDrafts(): Document[] {
@@ -113,6 +115,14 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   async function selectFolder(folderId: string) {
+    if (folderId === DRAFT_FOLDER_ID) {
+      openDraftBox()
+      return
+    }
+    if (folderId === TRASH_FOLDER_ID) {
+      await openTrashBox()
+      return
+    }
     selectedFolderId.value = folderId
     try {
       const list = await documentApi.listByFolder(folderId)
@@ -238,6 +248,11 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       currentDocumentData.value = draft ? { ...draft } : null
       return
     }
+    if (selectedFolderId.value === TRASH_FOLDER_ID) {
+      const trashDoc = folderDocuments.value.find(d => d.id === documentId)
+      currentDocumentData.value = trashDoc ? { ...trashDoc } : null
+      return
+    }
     try {
       const dto = await documentApi.getById(documentId)
       // 整体赋值，引用变化 → 触发编辑器重载内容
@@ -260,6 +275,9 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const lastVersionedDocId = ref<string | null>(null)
 
   function updateDocumentContent(documentId: string, content: string) {
+    if (selectedFolderId.value === TRASH_FOLDER_ID || selectedFolderId.value === SEARCH_FOLDER_ID) {
+      return
+    }
     // 原地修改当前文稿对象的 content（引用不变，不触发编辑器重新渲染）
     if (currentDocumentData.value && currentDocumentData.value.id === documentId) {
       currentDocumentData.value.content = content
@@ -375,6 +393,45 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     }
   }
 
+  async function openTrashBox() {
+    selectedFolderId.value = TRASH_FOLDER_ID
+    try {
+      const list = await documentApi.listTrash()
+      folderDocuments.value = list.map(mapDocument)
+      if (folderDocuments.value.length > 0) {
+        await selectDocument(folderDocuments.value[0].id)
+      } else {
+        selectedDocumentId.value = null
+        currentDocumentData.value = null
+      }
+    } catch (e: any) {
+      error.value = e?.message || '加载废纸篓失败'
+    }
+  }
+
+  async function openSearch(keyword: string) {
+    selectedFolderId.value = SEARCH_FOLDER_ID
+    const q = keyword.trim()
+    if (!q) {
+      folderDocuments.value = []
+      selectedDocumentId.value = null
+      currentDocumentData.value = null
+      return
+    }
+    try {
+      const list = await documentApi.search(q)
+      folderDocuments.value = list.map(mapDocument)
+      if (folderDocuments.value.length > 0) {
+        await selectDocument(folderDocuments.value[0].id)
+      } else {
+        selectedDocumentId.value = null
+        currentDocumentData.value = null
+      }
+    } catch (e: any) {
+      error.value = e?.message || '搜索文稿失败'
+    }
+  }
+
   // 本地创建一篇草稿，加入草稿列表并选中进入编辑
   function createDraft(title?: string): Document {
     const now = new Date().toISOString()
@@ -421,6 +478,10 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   async function deleteDocument(documentId: string) {
+    if (selectedFolderId.value === TRASH_FOLDER_ID) {
+      error.value = '请在废纸篓中使用“彻底删除”'
+      return
+    }
     try {
       await documentApi.remove(documentId)
       const idx = folderDocuments.value.findIndex(d => d.id === documentId)
@@ -436,6 +497,44 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       }
     } catch (e: any) {
       error.value = e?.message || '删除文稿失败'
+    }
+  }
+
+  async function restoreDocument(documentId: string) {
+    try {
+      await documentApi.restore(documentId)
+      const idx = folderDocuments.value.findIndex(d => d.id === documentId)
+      if (idx !== -1) folderDocuments.value.splice(idx, 1)
+      if (selectedDocumentId.value === documentId) {
+        const next = folderDocuments.value[0]
+        if (next) {
+          await selectDocument(next.id)
+        } else {
+          selectedDocumentId.value = null
+          currentDocumentData.value = null
+        }
+      }
+    } catch (e: any) {
+      error.value = e?.message || '恢复文稿失败'
+    }
+  }
+
+  async function hardDeleteDocument(documentId: string) {
+    try {
+      await documentApi.hardDelete(documentId)
+      const idx = folderDocuments.value.findIndex(d => d.id === documentId)
+      if (idx !== -1) folderDocuments.value.splice(idx, 1)
+      if (selectedDocumentId.value === documentId) {
+        const next = folderDocuments.value[0]
+        if (next) {
+          await selectDocument(next.id)
+        } else {
+          selectedDocumentId.value = null
+          currentDocumentData.value = null
+        }
+      }
+    } catch (e: any) {
+      error.value = e?.message || '彻底删除失败'
     }
   }
 
@@ -537,8 +636,12 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     createDocument,
     createNewDocument,
     openDraftBox,
+    openTrashBox,
+    openSearch,
     renameDocument,
     deleteDocument,
+    restoreDocument,
+    hardDeleteDocument,
     // 辅助
     getDocumentPreview
   }
