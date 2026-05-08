@@ -58,7 +58,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: [] }>()
 
 const store = useAiChatStore()
 const apiKeyInput = ref('')

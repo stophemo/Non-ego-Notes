@@ -6,8 +6,11 @@
         v-if="item.type === 'item'" 
         @click="$emit('action', item.action || '')"
       >
-        <span v-if="!item.isHtml">{{ item.label }}</span>
-        <span v-else v-html="item.label"></span>
+        <div class="item-content">
+          <span v-if="!item.isHtml">{{ item.label }}</span>
+          <span v-else v-html="item.label"></span>
+          <span v-if="item.shortcut" class="item-shortcut">{{ item.shortcut }}</span>
+        </div>
       </DropdownItem>
       
       <!-- 分隔线 -->
@@ -110,5 +113,19 @@ defineEmits<{
 .submenu-enter-from,
 .submenu-leave-to {
   opacity: 0;
+}
+
+.item-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.item-shortcut {
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
 }
 </style>
