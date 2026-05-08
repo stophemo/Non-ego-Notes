@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.2.1",
   "type": "module",
-  "description": "鏃犳垜绗旇锛堟湰鍦扮増锛? 绾湰鍦?SQLite 瀛樺偍锛屾棤闇€浠讳綍鍚庣鏈嶅姟",
+  "description": "无我笔记（本地版） 纯本地 SQLite 存储，无需任何后端服务",
   "author": "stophemo",
   "main": "electron/main.cjs",
   "scripts": {

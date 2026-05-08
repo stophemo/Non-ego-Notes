@@ -275,7 +275,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const lastVersionedDocId = ref<string | null>(null)
 
   function updateDocumentContent(documentId: string, content: string) {
-    if (selectedFolderId.value === TRASH_FOLDER_ID || selectedFolderId.value === SEARCH_FOLDER_ID) {
+    if (selectedFolderId.value === TRASH_FOLDER_ID) {
       return
     }
     // 原地修改当前文稿对象的 content（引用不变，不触发编辑器重新渲染）
@@ -478,6 +478,29 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   async function deleteDocument(documentId: string) {
+    if (isDraftId(documentId)) {
+      const idx = drafts.value.findIndex(d => d.id === documentId)
+      if (idx !== -1) {
+        drafts.value.splice(idx, 1)
+        persistDrafts(drafts.value)
+      }
+      if (selectedFolderId.value === DRAFT_FOLDER_ID) {
+        folderDocuments.value = drafts.value.map(d => ({ ...d }))
+      } else {
+        const listIdx = folderDocuments.value.findIndex(d => d.id === documentId)
+        if (listIdx !== -1) folderDocuments.value.splice(listIdx, 1)
+      }
+      if (selectedDocumentId.value === documentId) {
+        const next = folderDocuments.value[0]
+        if (next) {
+          await selectDocument(next.id)
+        } else {
+          selectedDocumentId.value = null
+          currentDocumentData.value = null
+        }
+      }
+      return
+    }
     if (selectedFolderId.value === TRASH_FOLDER_ID) {
       error.value = '请在废纸篓中使用“彻底删除”'
       return

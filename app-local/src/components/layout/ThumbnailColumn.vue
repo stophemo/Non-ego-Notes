@@ -9,6 +9,7 @@
           class="note-item"
           :class="{ 'active': store.selectedDocumentId === doc.id }"
           @click="handleSelectDocument(doc.id)"
+          @contextmenu.prevent="handleDocContextMenu($event, doc.id)"
         >
           <h4>{{ firstLineOf(doc.content) || '新文稿' }}</h4>
           <p class="note-meta">{{ formatUpdatedAt(doc.updatedAt) }}</p>
@@ -107,6 +108,14 @@
         </div>
       </section>
     </div>
+
+    <ContextMenu
+      v-if="showContextMenu"
+      :position="contextMenuPosition"
+      :items="contextMenuItems"
+      @select="handleMenuSelect"
+      @close="closeContextMenu"
+    />
   </section>
 </template>
 
@@ -115,8 +124,10 @@ import { ref, computed, watch } from 'vue'
 import { useWorkspaceStore } from '../../stores/workspace'
 import * as versionApi from '../../services/versionApi'
 import type { DocumentVersionSummary } from '../../services/versionApi'
+import type { ContextMenuItem, ContextMenuPosition } from '../../types/folder'
 import IconDetail from '../icons/IconDetail.vue'
 import IconChevron from '../icons/IconChevron.vue'
+import ContextMenu from '../ui/ContextMenu.vue'
 
 interface Props {
   isOpen: boolean
@@ -138,6 +149,10 @@ const versionsError = ref('')
 // 两个面板的折叠状态
 const versionsCollapsed = ref(false)
 const outlineCollapsed = ref(false)
+const showContextMenu = ref(false)
+const contextMenuPosition = ref<ContextMenuPosition>({ x: 0, y: 0 })
+const contextMenuItems = ref<ContextMenuItem[]>([])
+const contextMenuDocId = ref<string | null>(null)
 
 // 当前文档大纲：从 currentDocument.content 中提取 h1~h6
 const outline = computed<{ level: number; text: string }[]>(() => {
@@ -238,6 +253,39 @@ async function handleRestoreDocument(docId: string) {
 async function handleHardDeleteDocument(docId: string) {
   if (!window.confirm('确认彻底删除该文稿？该操作不可恢复。')) return
   await store.hardDeleteDocument(docId)
+}
+
+function handleDocContextMenu(event: MouseEvent, docId: string) {
+  contextMenuDocId.value = docId
+  contextMenuPosition.value = { x: event.clientX, y: event.clientY }
+  contextMenuItems.value = isTrashView.value
+    ? [{ label: '彻底删除', action: 'hardDelete' }]
+    : [{ label: '删除', action: 'delete' }]
+  showContextMenu.value = true
+}
+
+function closeContextMenu() {
+  showContextMenu.value = false
+  contextMenuDocId.value = null
+}
+
+async function handleMenuSelect(action: string) {
+  const docId = contextMenuDocId.value
+  if (!docId) {
+    closeContextMenu()
+    return
+  }
+  if (action === 'delete') {
+    if (!window.confirm('确认删除该文稿？删除后将进入废纸篓。')) {
+      closeContextMenu()
+      return
+    }
+    await store.deleteDocument(docId)
+  }
+  if (action === 'hardDelete') {
+    await handleHardDeleteDocument(docId)
+  }
+  closeContextMenu()
 }
 
 // 当前文稿被删除则自动返回正面
