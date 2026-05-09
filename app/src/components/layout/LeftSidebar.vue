@@ -148,7 +148,12 @@ const handleOpenDraftBox = () => {
 const handleOpenSearch = async () => {
     const keyword = window.prompt('请输入搜索关键词（匹配标题与内容）', '')
     if (keyword === null) return
-    await store.openSearch(keyword)
+    const trimmedKeyword = keyword.trim()
+    if (!trimmedKeyword) {
+        alert('搜索关键词不能为空')
+        return
+    }
+    await store.openSearch(trimmedKeyword)
 }
 </script>
 

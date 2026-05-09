@@ -5,9 +5,22 @@
                 <IconNewDocument />
                 <span>新建文档</span>
             </div>
-            <div class="sidebar-item" @click="handleOpenSearch">
+            <div class="sidebar-item" v-if="!isSearchMode" @click="enableSearch">
                 <IconSearch />
                 <span>搜索</span>
+            </div>
+            <div class="sidebar-item search-item" v-else>
+                <IconSearch />
+                <input 
+                    ref="searchInputRef"
+                    v-model="searchKeyword" 
+                    type="text" 
+                    class="search-input-inline"
+                    placeholder="搜索标题和内容..."
+                    @input="handleSearchInput"
+                    @keyup.escape="disableSearch"
+                />
+                <button class="search-close-btn" @click="disableSearch" title="关闭搜索">×</button>
             </div>
             <div class="sidebar-item" @click="handleOpenDraftBox">
                 <IconDraft />
@@ -41,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick, watch } from 'vue'
 import FolderTree from './FolderTree.vue'
 import ContextMenu from '../ui/ContextMenu.vue'
 import IconNewDocument from '../icons/IconNewDocument.vue'
@@ -58,6 +71,69 @@ interface Props {
 defineProps<Props>()
 
 const store = useWorkspaceStore()
+
+// 搜索相关状态
+const isSearchMode = ref(false)
+const searchKeyword = ref('')
+const searchInputRef = ref<HTMLInputElement | null>(null)
+let searchDebounceTimer: number | null = null
+
+// 启用搜索模式
+const enableSearch = async () => {
+    isSearchMode.value = true
+    searchKeyword.value = ''
+    // 取消文件夹选中，进入全局搜索模式
+    store.selectedFolderId = null
+    store.selectedDocumentId = null
+    // 清空当前文档
+    if (store.currentDocument) {
+        // 通过重置选中文档ID来清空currentDocument
+        store.selectedDocumentId = null
+    }
+    
+    await nextTick()
+    searchInputRef.value?.focus()
+}
+
+// 禁用搜索模式
+const disableSearch = () => {
+    isSearchMode.value = false
+    searchKeyword.value = ''
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer)
+        searchDebounceTimer = null
+    }
+    // 清空搜索结果（通过调用openSearch传入空字符串）
+    store.openSearch('')
+}
+
+// 处理搜索输入（带防抖）
+const handleSearchInput = () => {
+    if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer)
+    }
+    
+    searchDebounceTimer = window.setTimeout(async () => {
+        const keyword = searchKeyword.value.trim()
+        if (!keyword) {
+            // 空关键词，清空结果
+            await store.openSearch('')
+            return
+        }
+        
+        console.log('[LeftSidebar] searching with:', keyword)
+        await store.openSearch(keyword)
+        console.log('[LeftSidebar] search completed')
+    }, 300) // 300ms 防抖
+}
+
+// 监听搜索模式关闭，清理定时器
+watch(isSearchMode, (newVal) => {
+    if (!newVal && searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer)
+        searchDebounceTimer = null
+    }
+})
 
 // 右键菜单状态
 const showContextMenu = ref(false)
@@ -148,12 +224,6 @@ const handleOpenDraftBox = () => {
 const handleOpenTrashBox = () => {
     void store.openTrashBox()
 }
-
-const handleOpenSearch = async () => {
-    const keyword = window.prompt('请输入搜索关键词（匹配标题与内容）', '')
-    if (keyword === null) return
-    await store.openSearch(keyword)
-}
 </script>
 
 <style scoped>
@@ -216,6 +286,54 @@ const handleOpenSearch = async () => {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* 搜索模式下的输入框样式 */
+.sidebar-item.search-item {
+    padding: 6px 8px;
+    gap: 8px;
+    cursor: default;
+}
+
+.sidebar-item.search-item:hover {
+    background-color: var(--bg-secondary);
+}
+
+.search-input-inline {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 13px;
+    outline: none;
+    padding: 0;
+    margin: 0;
+}
+
+.search-input-inline::placeholder {
+    color: var(--text-secondary);
+}
+
+.search-close-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.search-close-btn:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
 }
 
 .divider {
