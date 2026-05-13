@@ -142,6 +142,15 @@ function sanitize(seg) {
   return String(seg || '').replace(/[\s/\\:*?"<>|]/g, '_')
 }
 
+function emptyTrash() {
+  const db = getDb()
+  // Delete all version records for trashed documents
+  db.prepare(`DELETE FROM note_document_version
+               WHERE document_id IN (SELECT id FROM note_document WHERE deleted = 1)`).run()
+  // Delete all trashed documents
+  db.prepare('DELETE FROM note_document WHERE deleted = 1').run()
+}
+
 module.exports = {
   listByFolder,
   listTrash,
@@ -153,5 +162,6 @@ module.exports = {
   remove,
   restore,
   hardDelete,
+  emptyTrash,
   verifyExists
 }

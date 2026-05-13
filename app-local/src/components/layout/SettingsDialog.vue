@@ -3,13 +3,13 @@
     <div v-if="visible" class="settings-overlay" @click.self="$emit('close')" @keydown.esc="$emit('close')">
       <div class="settings-dialog">
         <div class="settings-header">
-          <h2>设置</h2>
+          <h2>{{ mode === 'ai' ? '模型配置' : '设置' }}</h2>
           <button class="settings-close-btn" @click="$emit('close')">
             <IconClose />
           </button>
         </div>
         <div class="settings-body">
-          <div class="settings-section">
+          <div v-if="mode === 'ai'" class="settings-section">
             <h3>AI 配置</h3>
             <div class="settings-field">
               <label>DeepSeek API Key</label>
@@ -45,7 +45,7 @@
             </p>
           </div>
 
-          <div class="settings-section">
+          <div v-if="mode === 'file'" class="settings-section">
             <h3>静态资源链接</h3>
             <div class="settings-field">
               <label>Provider</label>
@@ -76,9 +76,12 @@ import { getAssetLinkSettings, saveAssetLinkSettings } from '../../services/asse
 
 interface Props {
   visible: boolean
+  mode?: 'file' | 'ai'
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  mode: 'file'
+})
 const emit = defineEmits<{ close: [] }>()
 
 const store = useAiChatStore()
@@ -95,15 +98,17 @@ const assetPathPrefixInput = ref('')
 
 watch(() => props.visible, (val) => {
   if (val) {
-    apiKeyInput.value = store.getApiKey()
-    baseUrlInput.value = store.getBaseUrl()
-    validationResult.value = null
-    saveSuccess.value = false
-
-    const asset = getAssetLinkSettings()
-    assetProviderInput.value = asset.provider
-    assetBaseUrlInput.value = asset.baseUrl
-    assetPathPrefixInput.value = asset.pathPrefix
+    if (props.mode === 'ai') {
+      apiKeyInput.value = store.getApiKey()
+      baseUrlInput.value = store.getBaseUrl()
+      validationResult.value = null
+      saveSuccess.value = false
+    } else {
+      const asset = getAssetLinkSettings()
+      assetProviderInput.value = asset.provider
+      assetBaseUrlInput.value = asset.baseUrl
+      assetPathPrefixInput.value = asset.pathPrefix
+    }
   }
 })
 
@@ -121,13 +126,16 @@ async function handleValidate() {
 }
 
 function handleSave() {
-  store.saveApiKey(apiKeyInput.value.trim())
-  store.saveBaseUrl(baseUrlInput.value.trim())
-  saveAssetLinkSettings({
-    provider: assetProviderInput.value.trim() || 'custom',
-    baseUrl: assetBaseUrlInput.value.trim(),
-    pathPrefix: assetPathPrefixInput.value.trim()
-  })
+  if (props.mode === 'ai') {
+    store.saveApiKey(apiKeyInput.value.trim())
+    store.saveBaseUrl(baseUrlInput.value.trim())
+  } else {
+    saveAssetLinkSettings({
+      provider: assetProviderInput.value.trim() || 'custom',
+      baseUrl: assetBaseUrlInput.value.trim(),
+      pathPrefix: assetPathPrefixInput.value.trim()
+    })
+  }
   saveSuccess.value = true
   emit('close')
 }

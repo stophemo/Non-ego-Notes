@@ -259,7 +259,7 @@ function handleDocContextMenu(event: MouseEvent, docId: string) {
   contextMenuDocId.value = docId
   contextMenuPosition.value = { x: event.clientX, y: event.clientY }
   contextMenuItems.value = isTrashView.value
-    ? [{ label: '彻底删除', action: 'hardDelete' }]
+    ? [{ label: '清空废纸篓', action: 'emptyTrash' }, { label: '彻底删除', action: 'hardDelete' }]
     : [{ label: '删除', action: 'delete' }]
   showContextMenu.value = true
 }
@@ -276,14 +276,17 @@ async function handleMenuSelect(action: string) {
     return
   }
   if (action === 'delete') {
-    if (!window.confirm('确认删除该文稿？删除后将进入废纸篓。')) {
-      closeContextMenu()
-      return
-    }
     await store.deleteDocument(docId)
   }
   if (action === 'hardDelete') {
     await handleHardDeleteDocument(docId)
+  }
+  if (action === 'emptyTrash') {
+    if (!window.confirm('确认清空废纸篓？该操作不可恢复。')) {
+      closeContextMenu()
+      return
+    }
+    await store.emptyTrash()
   }
   closeContextMenu()
 }

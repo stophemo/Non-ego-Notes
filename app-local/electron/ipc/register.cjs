@@ -53,6 +53,9 @@ function register() {
   ipcMain.handle('document:hardDelete', wrap((id) => {
     documentService.hardDelete(id); return null
   }))
+  ipcMain.handle('document:emptyTrash', wrap(() => {
+    documentService.emptyTrash(); return null
+  }))
 
   // —— version ——
   ipcMain.handle('version:list', wrap((documentId) => versionService.listVersions(documentId)))

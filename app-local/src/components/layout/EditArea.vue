@@ -1,9 +1,5 @@
 ﻿<template>
   <section class="edit-area">
-    <div class="editor-toolbar">
-      <div class="toolbar-right">Zoom: Ctrl++ / Ctrl+- / Ctrl+0</div>
-    </div>
-
     <div v-if="showSheet" class="sheet-wrap">
       <div class="sheet-tools">
         <button class="tool-btn" @click="applyStyle('bold')">B</button>

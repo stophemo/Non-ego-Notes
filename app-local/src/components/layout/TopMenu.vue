@@ -125,7 +125,7 @@ const emit = defineEmits<{
   'toggle-left-sidebar': []
   'toggle-thumbnail-sidebar': []
   'toggle-right-sidebar': []
-  'open-settings': []
+  'open-settings': [mode: 'file' | 'ai']
   'toggle-top-menu': []
   'toggle-status-bar': []
 }>()
@@ -159,7 +159,11 @@ const handleMenuAction = (action: string) => {
     return
   }
   if (action === 'settings') {
-    emit('open-settings')
+    emit('open-settings', 'file')
+    return
+  }
+  if (action === 'ai-settings') {
+    emit('open-settings', 'ai')
     return
   }
   if (action === 'open-chat') {

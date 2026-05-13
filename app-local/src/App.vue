@@ -1,12 +1,12 @@
 <template>
   <div class="app-container">
     <!-- 顶部菜单栏 -->
-    <TopMenu 
+    <TopMenu
       :is-open="topMenuOpen"
       @toggle-left-sidebar="toggleLeftSidebar"
       @toggle-thumbnail-sidebar="toggleThumbnailSidebar"
       @toggle-right-sidebar="toggleRightSidebar"
-      @open-settings="showSettings = true"
+      @open-settings="openSettings"
       @toggle-top-menu="toggleTopMenu"
       @toggle-status-bar="toggleStatusBar"
     />
@@ -23,11 +23,11 @@
       <EditArea :is-status-bar-open="statusBarOpen" />
       
       <!-- 右侧AI对话区域 -->
-      <RightSidebar :is-open="rightSidebarOpen" @open-settings="showSettings = true" />
+      <RightSidebar :is-open="rightSidebarOpen" @open-settings="openSettings" />
     </div>
 
     <!-- 设置弹窗 -->
-    <SettingsDialog :visible="showSettings" @close="showSettings = false" />
+    <SettingsDialog :visible="showSettings" :mode="settingsMode" @close="showSettings = false" />
   </div>
 </template>
 
@@ -52,8 +52,14 @@ const leftSidebarOpen = ref(true)
 const thumbnailSidebarOpen = ref(true)
 const rightSidebarOpen = ref(true)
 const showSettings = ref(false)
+const settingsMode = ref<'file' | 'ai'>('file')
 const topMenuOpen = ref(true)
 const statusBarOpen = ref(true)
+
+function openSettings(mode: 'file' | 'ai') {
+  settingsMode.value = mode
+  showSettings.value = true
+}
 
 // 启动流程：本地版直接进入，加载数据
 async function initApp() {

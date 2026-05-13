@@ -561,6 +561,17 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     }
   }
 
+  async function emptyTrash() {
+    try {
+      await documentApi.emptyTrash()
+      folderDocuments.value = []
+      selectedDocumentId.value = null
+      currentDocumentData.value = null
+    } catch (e: any) {
+      error.value = e?.message || '清空废纸篓失败'
+    }
+  }
+
   // ============ 辅助 ============
   // 获取指定父节点下的同级目录列表，可选排除某个 id
   function getSiblings(parentId: string | null, excludeId: string | null): FolderNode[] {
@@ -665,6 +676,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     deleteDocument,
     restoreDocument,
     hardDeleteDocument,
+    emptyTrash,
     // 辅助
     getDocumentPreview
   }

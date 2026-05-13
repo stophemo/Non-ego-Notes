@@ -34,7 +34,7 @@
 
     <div v-if="!aiStore.hasApiKey" class="api-key-banner">
       <span>请先配置 DeepSeek API Key</span>
-      <button class="banner-btn" @click="$emit('open-settings')">去设置</button>
+      <button class="banner-btn" @click="$emit('open-settings', 'ai')">去设置</button>
     </div>
 
     <div class="chat-input-area">
@@ -72,7 +72,7 @@ interface Props {
 }
 
 defineProps<Props>()
-defineEmits<{ 'open-settings': [] }>()
+defineEmits<{ 'open-settings': [mode: 'file' | 'ai'] }>()
 
 const aiStore = useAiChatStore()
 const workspaceStore = useWorkspaceStore()

@@ -59,3 +59,7 @@ export function restore(documentId: string): Promise<void> {
 export function hardDelete(documentId: string): Promise<void> {
   return invoke<void>('document:hardDelete', documentId)
 }
+
+export function emptyTrash(): Promise<void> {
+  return invoke<void>('document:emptyTrash')
+}

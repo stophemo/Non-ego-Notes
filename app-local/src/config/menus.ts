@@ -53,7 +53,9 @@ export const editMenuItems: MenuItem[] = [
 
 // AI 菜单
 export const aiMenuItems: MenuItem[] = [
-  { type: 'item', label: 'Open Chat', action: 'open-chat' }
+  { type: 'item', label: 'Open Chat', action: 'open-chat' },
+  { type: 'divider' },
+  { type: 'item', label: '模型配置', action: 'ai-settings' }
 ]
 
 // 标记菜单（Markdown 语法）
