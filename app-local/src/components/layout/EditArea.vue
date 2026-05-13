@@ -45,8 +45,8 @@
 
     <div class="editor-body">
       <template v-if="store.currentDocument">
-        <div class="editor-scale-wrap" :style="editorScaleStyle">
-          <EditorContent :editor="editor" class="editor-content" />
+        <div class="editor-scale-wrap">
+          <EditorContent :editor="editor" class="editor-content" :style="editorScaleStyle" />
         </div>
       </template>
       <div v-else class="empty-editor">Please select a document</div>
@@ -98,8 +98,7 @@ const styles = ref<Record<string, { bold?: boolean; italic?: boolean; align?: 'l
 const editorScaleStyle = computed(() => {
   const scale = zoomPercent.value / 100
   return {
-    transform: `scale(${scale})`,
-    width: `${100 / scale}%`
+    zoom: `${scale}`
   }
 })
 
@@ -367,7 +366,7 @@ onBeforeUnmount(() => {
 .sheet-grid td.top-header { background: color-mix(in srgb, var(--bg-toolbar) 65%, transparent); }
 .sheet-grid td.left-header { background: color-mix(in srgb, var(--bg-toolbar) 40%, transparent); }
 .editor-body { flex: 1; overflow-y: auto; }
-.editor-scale-wrap { transform-origin: top center; }
+.editor-scale-wrap { display: block; }
 .editor-content { height: 100%; }
 .empty-editor { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 14px; }
 .editor-statusbar { height: 28px; background-color: var(--bg-toolbar); border-top: 1px solid var(--border-primary); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-size: 12px; color: var(--text-muted); flex-shrink: 0; overflow: hidden; transition: var(--theme-transition), height 0.25s ease, padding 0.25s ease, border-top-color 0.25s ease, opacity 0.2s ease, transform 0.25s ease; transform-origin: bottom; }
